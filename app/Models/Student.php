@@ -22,6 +22,7 @@ class Student extends Model
         'gender',
         'birthday',
         'yr_level',
+        'status',
     ];
 
     protected $casts = [

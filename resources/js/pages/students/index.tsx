@@ -4,7 +4,15 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import students from '@/routes/students';
+import { Spinner } from '@/components/ui/spinner';
+import {
+    destroy as destroyStudent,
+    index as studentsIndex,
+    show as showStudent,
+    store as storeStudent,
+    update as updateStudent,
+} from '@/routes/students';
+import { toast } from 'sonner';
 
 type Student = {
     id: number;
@@ -15,6 +23,7 @@ type Student = {
     gender: string;
     birthday: string;
     yr_level: string;
+    status: string;
 };
 
 type Props = {
@@ -30,6 +39,7 @@ const emptyForm = {
     gender: 'female',
     birthday: '',
     yr_level: '1',
+    status: 'active',
 };
 
 export default function StudentsIndex({
@@ -46,10 +56,12 @@ export default function StudentsIndex({
                   gender: student.gender,
                   birthday: student.birthday,
                   yr_level: student.yr_level,
+                  status: student.status ?? 'active',
               }
             : emptyForm,
     );
     const [search, setSearch] = useState('');
+    const [isSaving, setIsSaving] = useState(false);
 
     const filteredStudents = studentList.filter((item) => {
         const query = search.trim().toLowerCase();
@@ -76,13 +88,27 @@ export default function StudentsIndex({
             ...form,
         };
 
+        const wasEditing = isEditing;
+        const options = {
+            onStart: () => setIsSaving(true),
+            onSuccess: () => {
+                setForm(emptyForm);
+                toast.success(
+                    wasEditing
+                        ? 'Student updated successfully.'
+                        : 'Student added successfully.',
+                );
+            },
+            onFinish: () => setIsSaving(false),
+        };
+
         if (isEditing && student) {
-            router.put(students.update(student.id), payload);
+            router.put(updateStudent(student.id), payload, options);
 
             return;
         }
 
-        router.post(students.store(), payload);
+        router.post(storeStudent(), payload, options);
     };
 
     const handleDelete = (id: number) => {
@@ -90,7 +116,7 @@ export default function StudentsIndex({
             return;
         }
 
-        router.delete(students.destroy(id));
+        router.delete(destroyStudent(id));
     };
 
     return (
@@ -109,7 +135,7 @@ export default function StudentsIndex({
                         type="button"
                         onClick={() => {
                             setForm(emptyForm);
-                            router.get(students.index());
+                            router.get(studentsIndex());
                         }}
                     >
                         <Plus className="mr-2 h-4 w-4" />
@@ -171,7 +197,7 @@ export default function StudentsIndex({
                                                 size="sm"
                                                 onClick={() =>
                                                     router.get(
-                                                        students.show(item.id),
+                                                        showStudent(item.id),
                                                     )
                                                 }
                                             >
@@ -306,8 +332,28 @@ export default function StudentsIndex({
                                 />
                             </div>
 
+                            <div className="grid gap-2">
+                                <Label htmlFor="status">Status</Label>
+                                <select
+                                    id="status"
+                                    value={form.status}
+                                    onChange={(event) =>
+                                        setForm((current) => ({
+                                            ...current,
+                                            status: event.target.value,
+                                        }))
+                                    }
+                                    className="border-input bg-background h-9 w-full rounded-md border px-3 text-sm"
+                                >
+                                    <option value="active">Active</option>
+                                    <option value="inactive">Inactive</option>
+                                    <option value="graduated">Graduated</option>
+                                </select>
+                            </div>
+
                             <div className="flex gap-2 pt-2">
-                                <Button type="submit">
+                                <Button type="submit" disabled={isSaving}>
+                                    {isSaving && <Spinner />}
                                     {isEditing
                                         ? 'Update student'
                                         : 'Save student'}
@@ -318,7 +364,7 @@ export default function StudentsIndex({
                                         variant="outline"
                                         onClick={() => {
                                             setForm(emptyForm);
-                                            router.get(students.index());
+                                            router.get(studentsIndex());
                                         }}
                                     >
                                         Cancel
@@ -337,7 +383,7 @@ StudentsIndex.layout = {
     breadcrumbs: [
         {
             title: 'Students',
-            href: students.index(),
+            href: studentsIndex(),
         },
     ],
 };
@@ -350,4 +396,5 @@ type StudentForm = {
     gender: string;
     birthday: string;
     yr_level: string;
+    status: string;
 };

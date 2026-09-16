@@ -45,6 +45,7 @@ class StudentController extends Controller
             'gender' => ['required', 'string', 'max:255'],
             'birthday' => ['required', 'date'],
             'yr_level' => ['required', 'string', 'max:255'],
+            'status' => ['sometimes', 'required', 'in:active,inactive,graduated'],
         ]);
 
         Student::create($validated);
@@ -87,6 +88,7 @@ class StudentController extends Controller
             'gender' => ['required', 'string', 'max:255'],
             'birthday' => ['required', 'date'],
             'yr_level' => ['required', 'string', 'max:255'],
+            'status' => ['sometimes', 'required', 'in:active,inactive,graduated'],
         ]);
 
         $student->update($validated);
