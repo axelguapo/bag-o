@@ -2,10 +2,16 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use Database\Factories\StudentFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+/**
+ * @use HasFactory<StudentFactory>
+ */
 class Student extends Model
 {
+    /** @use HasFactory<StudentFactory> */
     use HasFactory;
 
     protected $fillable = [
@@ -15,17 +21,25 @@ class Student extends Model
         'program',
         'gender',
         'birthday',
-        'yr_level'
+        'yr_level',
     ];
+
     protected $casts = [
         'birthday' => 'date',
     ];
 
     protected $appends = [
-        'age'
+        'age',
     ];
 
-    public function getAgeAttribute(){
-        return $this->birthday?->age;
+    public function getAgeAttribute(): ?int
+    {
+        $birthday = $this->birthday;
+
+        if ($birthday === null) {
+            return null;
+        }
+
+        return $birthday->age;
     }
 }
